@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from help import *
+from art import tprint
 
 
 def get_pagen(browser, *args):
@@ -68,7 +69,7 @@ def get_html(driver, url, pg = None):
             if new_height == last_height:
                 # сохраняем и завершаем
                 html = driver.page_source
-                wtf(html, pg=0)   
+                wtf(html, pg = f'_{pg}')
                 pcolor("[+] прокрутка завершена")
                 break
             
@@ -112,21 +113,21 @@ def get_links(html):
     return r
 
 if __name__ == "__main__":
-    """_"""
-    url = 'https://eda.yandex.ru/moscow?shippingType=delivery'
+    """_@_@_"""    
+    city = ['spb', 'moscow', 'Chita', 'novosibirsk', 'kaliningrad']
+    code_region = city[1]
+    url = f'https://eda.yandex.ru/{code_region}?shippingType=delivery'
 
+    tprint(f'eda - {code_region}', font='cybermedium', sep='\n')
+
+    # ------------------------
     driver = get_selenium_driver()
-    html = get_html(driver, f'{url}', None)
+    html = get_html(driver, url, code_region)
 
-    # html = lf(f'./html/html0.txt')
-    r = get_links(html)
+    # html = lf(f'./html/html_{code_region}.txt')
+    eda_data = get_links(html)
+    write_json(eda_data, f'./json/{code_region}.json')
 
-    write_json(r, f'./json/r.json')
-    # -------print------- #
-    for i, r0 in enumerate(r, 1):
-        p(r0)
-        if i == 3:
-            break
-
-    p(len(r))
+    # -------------------------
+    pcolor(f'[+] всего загруженно: {len(eda_data)}')
 
