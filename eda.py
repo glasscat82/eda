@@ -9,7 +9,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from help import *
-from art import tprint
 
 
 def get_pagen(browser, *args):
@@ -89,9 +88,9 @@ def get_links(html):
     r = []
     for h2 in result_body.find_all('h2', {"class":"PlaceList_title"}):
         """ list restaurant only """
-        n0 = h2.text.strip()
+        n_title = h2.text.strip()
 
-        if n0 == 'Все рестораны':
+        if n_title == 'Все рестораны' or n_title == 'Предзаказ':
             hp = h2.parent.parent
             ul = hp.find('ul')
             for item in ul.find_all('div', {'class':'PlaceListBduItem_placesListItem'}):
@@ -113,21 +112,27 @@ def get_links(html):
     return r
 
 if __name__ == "__main__":
-    """_@_@_"""    
-    city = ['spb', 'moscow', 'Chita', 'novosibirsk', 'kaliningrad']
-    code_region = city[1]
-    url = f'https://eda.yandex.ru/{code_region}?shippingType=delivery'
-
-    tprint(f'eda - {code_region}', font='cybermedium', sep='\n')
-
-    # ------------------------
+    """_@_@_"""
+    regions = load_json(path=f'./api/regions.json')
     driver = get_selenium_driver()
-    html = get_html(driver, url, code_region)
 
-    # html = lf(f'./html/html_{code_region}.txt')
-    eda_data = get_links(html)
-    write_json(eda_data, f'./json/{code_region}.json')
+    for i, region in enumerate(regions, 1):
+        """---"""
+        if i == 2:
+            break
 
-    # -------------------------
-    pcolor(f'[+] всего загруженно: {len(eda_data)}')
+        code_region = region['slug']
+        url = f'https://eda.yandex.ru/{code_region}?shippingType=delivery'
+
+        pcolor(f'[+] eda - {code_region} - numerate {i}', 5)
+
+        # ------------------------
+        html = get_html(driver, url, code_region)
+
+        html = lf(f'./html/html_{code_region}.txt')
+        eda_data = get_links(html)
+        write_json(eda_data, f'./json/{code_region}.json')
+
+        # -------------------------
+        pcolor(f'[+] всего загруженно: {len(eda_data)}')
 

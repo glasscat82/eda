@@ -1,3 +1,10 @@
 __pycache__
+/log.txt
+eda_api.py
+/api/*
+!/api/regions.json
 /html/*
 !/html/README.md
+/json/*
+!/json/moscow.json
+!/json/spb.json
