@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from tinydb import TinyDB, Query
 from help import *
 
 
@@ -80,7 +81,11 @@ def get_html(driver, url, pg = None):
     
     return html
 
-def get_links(html):
+def get_slug(url, code_region):
+    u = url.replace(f'/{code_region}/r/','',1)
+    return u.split('?placeSlug=')
+
+def get_links(html, code_region = None, country_id = None):
     ''' '''
     soup = BeautifulSoup(html, 'lxml')
     result_body = soup.find('body', {})
@@ -96,43 +101,66 @@ def get_links(html):
             for item in ul.find_all('div', {'class':'PlaceListBduItem_placesListItem'}):
                 i_name = item.find('h3', {'class':'NewPlaceItem_title'})
                 i_url = item.find('a')
+                i_url_href = i_url.get('href')
                 i_img = item.find('img',{'class':'NewPlaceItem_image'})
                 i_rating = item.find('div',{'class':'NewPlaceItem_metaWrapper'})
+                i_type = item.find('span', {'class':'PlaceBadge_text'})
+                
+                slug_arr = get_slug(i_url_href, code_region)
 
                 row = {}
                 row['name'] = i_name.text.strip()
                 row['title'] = i_name.get('title')
-                row['url'] = i_url.get('href')
+                row['code_region'] = code_region
+                row['country_id'] = country_id
+                row['slug'] = slug_arr[0]
+                row['place_slug'] = slug_arr[1]
+                row['url'] = i_url_href
                 row['img'] = i_img.get('src')
                 row['rating'] = i_rating.get('aria-label').strip()
-                r.append(row)
+                
+                if i_type is not None:
+                    row['type'] = i_type.text.strip()
+                
+                if n_title == 'Предзаказ':
+                    row['type'] = 'Предзаказ'
 
-            break
+                r.append(row)
 
     return r
 
 if __name__ == "__main__":
     """_@_@_"""
+    db = TinyDB('./json/eda.json')
     regions = load_json(path=f'./api/regions.json')
     driver = get_selenium_driver()
-
+ 
     for i, region in enumerate(regions, 1):
-        """---"""
-        if i == 2:
-            break
+        """ <= """
+        # if i < 666:
+        #     continue
+        
+        try:
+            code_region = region['slug']
+            url = f'https://eda.yandex.ru/{code_region}?shippingType=delivery'
 
-        code_region = region['slug']
-        url = f'https://eda.yandex.ru/{code_region}?shippingType=delivery'
+            pcolor(f'[+] eda - {code_region} - {i}', 5)
 
-        pcolor(f'[+] eda - {code_region} - numerate {i}', 5)
+            # ------------------------
+            html = get_html(driver, url, code_region)
 
-        # ------------------------
-        html = get_html(driver, url, code_region)
+            eda_data = get_links(html, code_region, country_id = region['countryId'])
+            if len(eda_data) > 0:
+                link_list = db.insert_multiple(eda_data)
 
-        html = lf(f'./html/html_{code_region}.txt')
-        eda_data = get_links(html)
-        write_json(eda_data, f'./json/{code_region}.json')
+                write_json(eda_data, f'./json/region/{code_region}.json')        
+                p(link_list)
 
-        # -------------------------
-        pcolor(f'[+] всего загруженно: {len(eda_data)}')
+            # -------------------------
+            pcolor(f'[+] всего загруженно: {len(eda_data)}')
+        
+        except Exception as e:
+            s0 = f'[-] errorf: {sys.exc_info()[1]} - {region["slug"]} - {i}'
+            log_add(s0)
+            pcolor(s0, color_num=1)
 

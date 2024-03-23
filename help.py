@@ -5,7 +5,13 @@ def p(text, *args):
     print(text, *args, sep=' / ', end='\n')
 
 def pcolor(text_code, color_num = 2):
+    ''' color print '''
     print(f'\033[3{color_num}m{text_code}\033[0m', end='\n')
+
+def log_add(text, type = 'log'):
+    ''' add login files '''
+    with open(f'./json/{type}.txt', "a", encoding='utf8') as f:
+        f.write(f'{text}\n')
 
 def wtf(html, pg):
     with open(f'./html/html{pg}.txt', "w", encoding='utf8') as f:
