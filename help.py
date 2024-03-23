@@ -2,6 +2,7 @@ import json
 import random
 
 def p(text, *args):
+    ''' easy print '''
     print(text, *args, sep=' / ', end='\n')
 
 def pcolor(text_code, color_num = 2):

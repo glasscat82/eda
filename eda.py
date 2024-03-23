@@ -136,10 +136,7 @@ if __name__ == "__main__":
     driver = get_selenium_driver()
  
     for i, region in enumerate(regions, 1):
-        """ <= """
-        # if i < 666:
-        #     continue
-        
+        """ <= """      
         try:
             code_region = region['slug']
             url = f'https://eda.yandex.ru/{code_region}?shippingType=delivery'
@@ -151,9 +148,7 @@ if __name__ == "__main__":
 
             eda_data = get_links(html, code_region, country_id = region['countryId'])
             if len(eda_data) > 0:
-                link_list = db.insert_multiple(eda_data)
-
-                write_json(eda_data, f'./json/region/{code_region}.json')        
+                link_list = db.insert_multiple(eda_data)       
                 p(link_list)
 
             # -------------------------
