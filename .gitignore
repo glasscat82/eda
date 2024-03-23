@@ -6,3 +6,4 @@ eda_api.py
 /html/*
 !/html/README.md
 /json/*
+!/json/README.md
